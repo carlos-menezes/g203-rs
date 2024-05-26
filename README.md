@@ -1,6 +1,7 @@
 # g203-rs
 
-<div style="position:relative; width:100%; height:0px; padding-bottom:62.500%"><iframe allow="fullscreen;autoplay" allowfullscreen height="100%" src="https://streamable.com/e/jd1erd?autoplay=1" width="100%" style="border:none; width:100%; height:100%; position:absolute; left:0px; top:0px; overflow:hidden;"></iframe></div>
+![](https://i.imgur.com/s5IKtVe.jpeg)
+[Watch it in action.](https://streamable.com/e/jd1erd)
 
 <br>
 
