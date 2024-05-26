@@ -224,7 +224,6 @@ impl Controller {
     }
 
     pub fn command(&self, data: &[u8], disable_ls_memory: bool) -> rusb::Result<()> {
-        // Call the command prologue function to prepare the device for the command.
         self.command_prologue()?;
 
         // If the disable_ls_memory flag is true, send a specific command to the device to disable LS memory.
@@ -247,7 +246,7 @@ impl Controller {
             .unwrap();
 
         // Check if the first four bytes of the command data matches a specific sequence.
-        // If it does, send an additional command to the device in order to apply the command.
+        // If it does, send an additional command to the device in order to apply the command (only used when sending `triple`).
         let is_triple_command = data[0..4] == [0x11, 0xff, 0x12, 0x1b];
         if is_triple_command {
             self.inner.write_control(
