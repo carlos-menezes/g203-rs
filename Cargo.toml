@@ -1,0 +1,19 @@
+[package]
+name = "g203_rs"
+version = "0.1.0"
+edition = "2021"
+author = "Carlos Menezes <carlos.dm.menezes@gmail.com>"
+license = "MIT"
+description = "CLI and library for controlling the Logitech G203 Lightsync mouse"
+
+[lib]
+name = "g203_lib"
+path = "src/lib.rs"
+
+[[bin]]
+name = "g203ctl"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.5.4", features = ["cargo", "derive"] }
+rusb = "0.9"
