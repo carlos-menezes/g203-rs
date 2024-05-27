@@ -21,7 +21,6 @@ pub struct Controller {
 
 impl Controller {
     pub fn new_with_timeout(timeout: Duration) -> rusb::Result<Self> {
-        println!("{:#?}", rusb::devices()?.iter().collect::<Vec<_>>());
         let handle = rusb::open_device_with_vid_pid(VENDOR_ID, PRODUCT_ID);
         match handle {
             Some(handle) => Ok(Self {
