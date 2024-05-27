@@ -3,7 +3,6 @@ use std::time::Duration;
 use rusb::{DeviceHandle, GlobalContext};
 
 const INTERFACE_ID: u8 = 0x01;
-const CONFIGURATION_ID: u8 = 0;
 const VENDOR_ID: u16 = 0x046D;
 const PRODUCT_ID: u16 = 0xC09D;
 
@@ -22,15 +21,13 @@ pub struct Controller {
 
 impl Controller {
     pub fn new_with_timeout(timeout: Duration) -> rusb::Result<Self> {
+        println!("{:#?}", rusb::devices()?.iter().collect::<Vec<_>>());
         let handle = rusb::open_device_with_vid_pid(VENDOR_ID, PRODUCT_ID);
         match handle {
-            Some(handle) => {
-                handle.set_active_configuration(CONFIGURATION_ID)?;
-                Ok(Self {
-                    inner: handle,
-                    timeout,
-                })
-            }
+            Some(handle) => Ok(Self {
+                inner: handle,
+                timeout,
+            }),
             None => Err(rusb::Error::NoDevice),
         }
     }
@@ -197,28 +194,14 @@ impl Controller {
         )
     }
 
-    // This function is called before sending a command to the device.
-    // It detaches the kernel driver from the interface and claims the interface for the program.
-    // This is necessary to ensure that the program has exclusive access to the device.
     fn command_prologue(&self) -> rusb::Result<()> {
-        // Detach the kernel driver from the interface.
-        // This allows the program to have exclusive access to the device.
         self.inner.detach_kernel_driver(INTERFACE_ID)?;
-        // Claim the interface.
-        // This tells the operating system that the program is now in control of the device.
         self.inner.claim_interface(INTERFACE_ID)?;
         Ok(())
     }
 
-    // This function is called after a command has been sent to the device.
-    // It releases the interface and reattaches the kernel driver.
-    // This is necessary to allow other programs to access the device.
     fn command_epilogue(&self) -> rusb::Result<()> {
-        // Release the interface.
-        // This tells the operating system that the program is no longer in control of the device.
         self.inner.release_interface(INTERFACE_ID)?;
-        // Reattach the kernel driver to the interface.
-        // This allows other programs to access the device.
         self.inner.attach_kernel_driver(INTERFACE_ID)?;
         Ok(())
     }
@@ -226,24 +209,20 @@ impl Controller {
     pub fn command(&self, data: &[u8], disable_ls_memory: bool) -> rusb::Result<()> {
         self.command_prologue()?;
 
-        // If the disable_ls_memory flag is true, send a specific command to the device to disable LS memory.
         if disable_ls_memory {
-            self.inner
-                .write_control(
-                    0x21,
-                    0x09,
-                    0x210,
-                    0x01,
-                    &[0x10, 0xff, 0x0e, 0x5b, 0x01, 0x03, 0x05],
-                    self.timeout,
-                )
-                .unwrap();
+            self.inner.write_control(
+                0x21,
+                0x09,
+                0x210,
+                0x01,
+                &[0x10, 0xff, 0x0e, 0x5b, 0x01, 0x03, 0x05],
+                self.timeout,
+            )?;
         }
 
         // Send the command data to the device.
         self.inner
-            .write_control(0x21, 0x09, 0x211, 0x01, data, self.timeout)
-            .unwrap();
+            .write_control(0x21, 0x09, 0x211, 0x01, data, self.timeout)?;
 
         // Check if the first four bytes of the command data matches a specific sequence.
         // If it does, send an additional command to the device in order to apply the command (only used when sending `triple`).
