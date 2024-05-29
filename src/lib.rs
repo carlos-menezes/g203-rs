@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{env, time::Duration};
 
 use rusb::{DeviceHandle, GlobalContext};
 
@@ -194,14 +194,18 @@ impl Controller {
     }
 
     fn command_prologue(&self) -> rusb::Result<()> {
-        self.inner.detach_kernel_driver(INTERFACE_ID)?;
         self.inner.claim_interface(INTERFACE_ID)?;
+        if env::consts::OS != "windows" {
+            self.inner.detach_kernel_driver(INTERFACE_ID)?;
+        }
         Ok(())
     }
 
     fn command_epilogue(&self) -> rusb::Result<()> {
         self.inner.release_interface(INTERFACE_ID)?;
-        self.inner.attach_kernel_driver(INTERFACE_ID)?;
+        if env::consts::OS != "windows" {
+            self.inner.attach_kernel_driver(INTERFACE_ID)?;
+        }
         Ok(())
     }
 
@@ -240,7 +244,11 @@ impl Controller {
             )?;
         }
 
-        self.command_epilogue()?;
+        if env::consts::OS != "windows" {
+            println!("here");
+            self.command_epilogue()?;
+        }
+
         Ok(())
     }
 }
